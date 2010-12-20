@@ -18,16 +18,32 @@ import os
 import sys
 from optparse import make_option
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.core.management.base import BaseCommand
 from django.test.utils import setup_test_environment
 from django.test.utils import teardown_test_environment
 
 from lettuce import Runner
 from lettuce import registry
+from lettuce.fs import FeatureLoader, FileSystem
 
 from lettuce.django import server
 from lettuce.django import harvest_lettuces
 
+class DjangoFeatureLoader(FeatureLoader):
+    
+    def find_and_load_step_definitions(self):
+        files = []
+        # Check to see if we have global steps we want to use
+        if hasattr(settings, 'LETTUCE_STEPS_DIR'):
+            if os.path.isdir(settings.LETTUCE_STEPS_DIR):
+                files.extend(FileSystem.locate(settings.LETTUCE_STEPS_DIR, '*.py'))
+            else:
+                raise ImproperlyConfigured("LETTUCE_STEPS_DIR is not a directory")
+                
+        files.extend(FileSystem.locate(self.base_dir, '*.py'))
+        self._load_steps(files)
+    
 class Command(BaseCommand):
     help = u'Run lettuce tests all along installed apps'
     args = '[PATH to feature file or folder]'
@@ -99,7 +115,7 @@ class Command(BaseCommand):
                 if app_module is not None:
                     registry.call_hook('before_each', 'app', app_module)
 
-                runner = Runner(path, options.get('scenarios'), verbosity)
+                runner = Runner(path, options.get('scenarios'), verbosity, DjangoFeatureLoader)
                 result = runner.run()
                 if app_module is not None:
                     registry.call_hook('after_each', 'app', app_module, result)

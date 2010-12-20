@@ -33,6 +33,13 @@ class FeatureLoader(object):
 
     def find_and_load_step_definitions(self):
         files = FileSystem.locate(self.base_dir, '*.py')
+        self._load_steps(files)
+
+    def find_feature_files(self):
+        paths = FileSystem.locate(self.base_dir, "*.feature")
+        return paths
+    
+    def _load_steps(self, files):
         for filename in files:
             root = FileSystem.dirname(filename)
             sys.path.insert(0, root)
@@ -40,10 +47,6 @@ class FeatureLoader(object):
             module = __import__(to_load)
             reload(module) # always take fresh meat :)
             sys.path.remove(root)
-
-    def find_feature_files(self):
-        paths = FileSystem.locate(self.base_dir, "*.feature")
-        return paths
 
 class FileSystem(object):
     """File system abstraction, mainly used for indirection, so that

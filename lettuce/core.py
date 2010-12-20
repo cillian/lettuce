@@ -521,7 +521,6 @@ class Scenario(object):
     def run(self, ignore_case):
         """Runs a scenario, running each of its steps. Also call
         before_each and after_each callbacks for steps and scenario"""
-
         results = []
         call_hook('before_each', 'scenario', self)
 

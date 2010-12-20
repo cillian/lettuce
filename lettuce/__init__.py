@@ -58,7 +58,7 @@ class Runner(object):
     Takes a base path as parameter (string), so that it can look for
     features and step definitions on there.
     """
-    def __init__(self, base_path, scenarios=None, verbosity=0):
+    def __init__(self, base_path, scenarios=None, verbosity=0, feature_loader=fs.FeatureLoader):
         """ lettuce.Runner will try to find a terrain.py file and
         import it from within `base_path`
         """
@@ -69,7 +69,7 @@ class Runner(object):
             base_path = os.path.dirname(base_path)
 
         sys.path.insert(0, base_path)
-        self.loader = fs.FeatureLoader(base_path)
+        self.loader = feature_loader(base_path)
         self.verbosity = verbosity
         self.scenarios = scenarios and map(int, scenarios.split(",")) or None
 
